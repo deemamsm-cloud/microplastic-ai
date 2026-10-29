@@ -160,4 +160,68 @@ st.markdown("---")
 # الرسم البياني الأول: حركية التحلل
 st.markdown("<h4 style='color: #f0f6fc; font-size: 16px;'>منحنى حركية التحلل الحيوي مقابل زمن الاحتفاظ</h4>", unsafe_allow_html=True)
 
-days_range =
+days_range = np.linspace(1, 30, 30)
+sim_data = pd.DataFrame({
+    'Temperature_C': [temp_input]*30,
+    'pH_Level': [ph_input]*30,
+    'Initial_MP_Concentration_mgL': [mp_conc_input]*30,
+    'Retention_Time_Days': days_range,
+    'Bacterial_Strain_ID': [strain_choice]*30
+})
+curve_preds = model.predict(sim_data)
+
+df_chart1 = pd.DataFrame({
+    'زمن الاحتفاظ (بالأيام)': days_range,
+    'كفاءة التحلل الحيوي (%)': curve_preds
+})
+
+fig1 = px.line(
+    df_chart1, x='زمن الاحتفاظ (بالأيام)', y='كفاءة التحلل الحيوي (%)',
+    markers=True, template='plotly_dark',
+    color_discrete_sequence=['#58a6ff']
+)
+fig1.update_layout(
+    margin=dict(l=10, r=10, t=10, b=10), 
+    height=300,
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
+)
+st.plotly_chart(fig1, use_container_width=True)
+
+st.markdown("""
+    <div class="explanation-box">
+        <b>تحليل المنحنى الحركي:</b> يوضح هذا التمثيل البياني تطور نسبة تفكيك البلاستيك الدقيق تصاعدياً مع زيادة زمن بقاء المياه داخل المفاعل الحيوي. تتيح ميزة التمرير التفاعلي تتبع النسبة الدقيقة لكل يوم حضانة، حيث تمنح الفترات الزمنية المدروسة البكتيريا القدرة الكافية لإفراز الإنزيمات الحيوية الفعالة.
+    </div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
+
+# الرسم البياني الثاني: الأهمية النسبية
+st.markdown("<h4 style='color: #f0f6fc; font-size: 16px;'>مؤشر الأهمية النسبية للعوامل البيئية والحركية</h4>", unsafe_allow_html=True)
+
+importances = model.feature_importances_
+features_names = ['درجة الحرارة', 'درجة الحموضة (pH)', 'التركيز الأولي للبلاستيك', 'زمن الاحتفاظ بالحضانة', 'نوع السلالة البكتيرية']
+
+df_chart2 = pd.DataFrame({
+    'العامل البيئي أو الحركي': features_names,
+    'مؤشر الأهمية النسبية': importances
+}).sort_values(by='مؤشر الأهمية النسبية', ascending=True)
+
+fig2 = px.bar(
+    df_chart2, x='مؤشر الأهمية النسبية', y='العامل البيئي أو الحركي',
+    orientation='h', template='plotly_dark',
+    color_discrete_sequence=['#2ea043']
+)
+fig2.update_layout(
+    margin=dict(l=10, r=10, t=10, b=10), 
+    height=300,
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
+)
+st.plotly_chart(fig2, use_container_width=True)
+
+st.markdown("""
+    <div class="explanation-box">
+        <b>تحليل الأهمية النسبية:</b> يعرض هذا التحليل ترتيب العوامل الأكثر تأثيراً على الكفاءة التشغيلية بناءً على خوارزميات التعلم الآلي. يبرز دور زمن الاحتفاظ ودرجة الحرارة كعوامل أساسية تضمن للمختصين توجيه الجهد والتحكم المباشر لتحقيق أقصى فاعلية بيئية.
+    </div>
+""", unsafe_allow_html=True)
