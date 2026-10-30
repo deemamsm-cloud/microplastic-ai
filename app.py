@@ -37,12 +37,12 @@ st.markdown("""
         background-color: #161b22;
         border: 1px solid #30363d;
         border-right: 3px solid #58a6ff;
-        padding: 16px;
+        padding: 14px;
         border-radius: 6px;
-        margin-top: 12px;
-        margin-bottom: 24px;
-        font-size: 13.5px;
-        line-height: 1.6;
+        margin-top: 10px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        line-height: 1.5;
         color: #8b949e;
     }
     section[data-testid="stSidebar"] {
@@ -157,71 +157,70 @@ with col3:
 
 st.markdown("---")
 
-# الرسم البياني الأول: حركية التحلل
-st.markdown("<h4 style='color: #f0f6fc; font-size: 16px;'>منحنى حركية التحلل الحيوي مقابل زمن الاحتفاظ</h4>", unsafe_allow_html=True)
+# تخطيط الرسوم البيانية جنباً إلى جنب (Side-by-side)
+chart_col1, chart_col2 = st.columns(2)
 
-days_range = np.linspace(1, 30, 30)
-sim_data = pd.DataFrame({
-    'Temperature_C': [temp_input]*30,
-    'pH_Level': [ph_input]*30,
-    'Initial_MP_Concentration_mgL': [mp_conc_input]*30,
-    'Retention_Time_Days': days_range,
-    'Bacterial_Strain_ID': [strain_choice]*30
-})
-curve_preds = model.predict(sim_data)
+with chart_col1:
+    st.markdown("<h4 style='color: #f0f6fc; font-size: 15px;'>مسار حركية التحلل مقابل زمن الاحتفاظ</h4>", unsafe_allow_html=True)
+    days_range = np.linspace(1, 30, 30)
+    sim_data = pd.DataFrame({
+        'Temperature_C': [temp_input]*30,
+        'pH_Level': [ph_input]*30,
+        'Initial_MP_Concentration_mgL': [mp_conc_input]*30,
+        'Retention_Time_Days': days_range,
+        'Bacterial_Strain_ID': [strain_choice]*30
+    })
+    curve_preds = model.predict(sim_data)
 
-df_chart1 = pd.DataFrame({
-    'زمن الاحتفاظ (بالأيام)': days_range,
-    'كفاءة التحلل الحيوي (%)': curve_preds
-})
+    df_chart1 = pd.DataFrame({
+        'زمن الاحتفاظ (بالأيام)': days_range,
+        'كفاءة التحلل الحيوي (%)': curve_preds
+    })
 
-fig1 = px.line(
-    df_chart1, x='زمن الاحتفاظ (بالأيام)', y='كفاءة التحلل الحيوي (%)',
-    markers=True, template='plotly_dark',
-    color_discrete_sequence=['#58a6ff']
-)
-fig1.update_layout(
-    margin=dict(l=10, r=10, t=10, b=10), 
-    height=300,
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)'
-)
-st.plotly_chart(fig1, use_container_width=True)
+    fig1 = px.line(
+        df_chart1, x='زمن الاحتفاظ (بالأيام)', y='كفاءة التحلل الحيوي (%)',
+        markers=True, template='plotly_dark',
+        color_discrete_sequence=['#58a6ff']
+    )
+    fig1.update_layout(
+        margin=dict(l=10, r=10, t=10, b=10), 
+        height=280,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    st.plotly_chart(fig1, use_container_width=True)
 
-st.markdown("""
-    <div class="explanation-box">
-        <b>تحليل المنحنى الحركي:</b> يوضح هذا التمثيل البياني تطور نسبة تفكيك البلاستيك الدقيق تصاعدياً مع زيادة زمن بقاء المياه داخل المفاعل الحيوي. تتيح ميزة التمرير التفاعلي تتبع النسبة الدقيقة لكل يوم حضانة، حيث تمنح الفترات الزمنية المدروسة البكتيريا القدرة الكافية لإفراز الإنزيمات الحيوية الفعالة.
-    </div>
-""", unsafe_allow_html=True)
+    st.markdown("""
+        <div class="explanation-box">
+            <b>تحليل المنحنى الحركي:</b> يوضح هذا التمثيل البياني تطور نسبة تفكيك البلاستيك الدقيق تصاعدياً مع زيادة زمن بقاء المياه داخل المفاعل الحيوي، مع إمكانية تتبع النسبة الدقيقة لكل يوم حضانة.
+        </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("---")
+with chart_col2:
+    st.markdown("<h4 style='color: #f0f6fc; font-size: 15px;'>مؤشر الأهمية النسبية للعوامل البيئية والحركية</h4>", unsafe_allow_html=True)
+    importances = model.feature_importances_
+    features_names = ['(pH) درجة الحموضة', 'نوع السلالة', 'تركيز البلاستيك الأولي', 'درجة الحرارة', 'زمن الاحتفاظ']
 
-# الرسم البياني الثاني: الأهمية النسبية
-st.markdown("<h4 style='color: #f0f6fc; font-size: 16px;'>مؤشر الأهمية النسبية للعوامل البيئية والحركية</h4>", unsafe_allow_html=True)
+    df_chart2 = pd.DataFrame({
+        'العامل البيئي/الحركي': features_names,
+        'نسبة التأثير والأهمية': importances
+    })
 
-importances = model.feature_importances_
-features_names = ['درجة الحرارة', 'درجة الحموضة (pH)', 'التركيز الأولي للبلاستيك', 'زمن الاحتفاظ بالحضانة', 'نوع السلالة البكتيرية']
+    fig2 = px.bar(
+        df_chart2, x='نسبة التأثير والأهمية', y='العامل البيئي/الحركي',
+        orientation='h', template='plotly_dark',
+        color='نسبة التأثير والأهمية', color_continuous_scale='Tealgrn'
+    )
+    fig2.update_layout(
+        margin=dict(l=10, r=10, t=10, b=10), 
+        height=280,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    st.plotly_chart(fig2, use_container_width=True)
 
-df_chart2 = pd.DataFrame({
-    'العامل البيئي أو الحركي': features_names,
-    'مؤشر الأهمية النسبية': importances
-}).sort_values(by='مؤشر الأهمية النسبية', ascending=True)
-
-fig2 = px.bar(
-    df_chart2, x='مؤشر الأهمية النسبية', y='العامل البيئي أو الحركي',
-    orientation='h', template='plotly_dark',
-    color_discrete_sequence=['#2ea043']
-)
-fig2.update_layout(
-    margin=dict(l=10, r=10, t=10, b=10), 
-    height=300,
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)'
-)
-st.plotly_chart(fig2, use_container_width=True)
-
-st.markdown("""
-    <div class="explanation-box">
-        <b>تحليل الأهمية النسبية:</b> يعرض هذا التحليل ترتيب العوامل الأكثر تأثيراً على الكفاءة التشغيلية بناءً على خوارزميات التعلم الآلي. يبرز دور زمن الاحتفاظ ودرجة الحرارة كعوامل أساسية تضمن للمختصين توجيه الجهد والتحكم المباشر لتحقيق أقصى فاعلية بيئية.
-    </div>
-""", unsafe_allow_html=True)
+    st.markdown("""
+        <div class="explanation-box">
+            <b>تحليل الأهمية النسبية:</b> يعرض ترتيب العوامل المؤثرة على الكفاءة التشغيلية بالاعتماد على خوارزميات التعلم الآلي، مبرزاً دور زمن الاحتفاظ ودرجة الحرارة.
+        </div>
+    """, unsafe_allow_html=True)
